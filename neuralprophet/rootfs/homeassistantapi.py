@@ -23,7 +23,7 @@ class HomeAssistantAPI:
             config = {}
         
         # Home Assistant API endpoint (from config or default)
-        self.ha_url = config.get('homeassistant', {}).get('url', "http://supervisor/core")
+        self.ha_url = config.get('homeassistant', {}).get('url', "http://supervisor/core/api")
         self.timeout = config.get('homeassistant', {}).get('timeout', 10)
         
         # Get settings from config
