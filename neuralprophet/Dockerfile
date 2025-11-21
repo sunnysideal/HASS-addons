@@ -11,4 +11,6 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 # Copy root filesystem
 COPY rootfs /
 
-#RUN chmod a+x /run.sh
+# Make service scripts executable
+RUN chmod a+x /etc/services.d/neuralprophet/run
+RUN chmod a+x /etc/services.d/neuralprophet/run /etc/services.d/neuralprophet/finish
