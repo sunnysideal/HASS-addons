@@ -18,7 +18,7 @@ class HomeAssistantAPI:
     def __init__(self, config=None):
         # Get the supervisor token from environment
         self.token = os.environ.get('SUPERVISOR_TOKEN')
-        logger.info(f"Initializing HomeAssistantAPI client with token {self.token}")
+        
         # Use config if provided, otherwise defaults
         if config is None:
             config = {}

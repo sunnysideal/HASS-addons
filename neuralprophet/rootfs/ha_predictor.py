@@ -1,6 +1,8 @@
 import logging
 import yaml
+import pandas as pd
 from pathlib import Path
+from datetime import datetime
 from homeassistantapi import HomeAssistantAPI
 
 # Set up basic logging first
@@ -52,6 +54,47 @@ def get_sensors_from_config(config):
     return sensors
 
 
+def prepare_training_data(history_data):
+    """Convert Home Assistant history data to NeuralProphet format
+    
+    Args:
+        history_data: List of history records from HA API
+        
+    Returns:
+        pandas DataFrame with columns 'ds' (datetime) and 'y' (value)
+    """
+    if not history_data or len(history_data) == 0:
+        logger.error("No history data provided")
+        return None
+    
+    # history_data is a list of lists, get the first list (single entity)
+    entity_data = history_data[0] if isinstance(history_data[0], list) else history_data
+    
+    # Extract datetime and state values
+    data_points = []
+    for record in entity_data:
+        try:
+            # Parse the timestamp
+            timestamp = pd.to_datetime(record['last_changed'])
+            # Convert state to float, skip if invalid
+            state_value = float(record['state'])
+            data_points.append({'ds': timestamp, 'y': state_value})
+        except (ValueError, KeyError) as e:
+            logger.debug(f"Skipping invalid record: {e}")
+            continue
+    
+    if not data_points:
+        logger.error("No valid data points found in history")
+        return None
+    
+    # Create DataFrame
+    df = pd.DataFrame(data_points)
+    logger.info(f"Prepared {len(df)} data points for training")
+    logger.info(f"Date range: {df['ds'].min()} to {df['ds'].max()}")
+    
+    return df
+
+
 logger.info("Home Assistant Add-on starting...")
 
 # Load configuration from neuralprophet.yaml
@@ -69,4 +112,13 @@ training_sensor = sensors[0].get('training_sensor')
 logger.info(f"Fetching history for {training_sensor}")
 
 training_data = ha_api.get_history(training_sensor, days=1, minimal_response = True)
-logger.info(f"History data: {training_data}")
+logger.info(f"Retrieved {len(training_data[0]) if training_data and len(training_data) > 0 else 0} history records")
+
+# Prepare data for NeuralProphet
+df = prepare_training_data(training_data)
+if df is not None:
+    logger.info(f"Training data prepared successfully")
+    logger.info(f"DataFrame shape: {df.shape}")
+    logger.info(f"DataFrame head:\n{df.head()}")
+else:
+    logger.error("Failed to prepare training data")
