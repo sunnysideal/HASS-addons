@@ -82,3 +82,51 @@ class HomeAssistantAPI:
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to call service: {e}")
             return None
+    
+    def get_history(self, entity_ids=None, start_time=None, end_time=None, minimal_response=False):
+        """Get historical data for entities
+        
+        Args:
+            entity_ids: List of entity IDs or single entity ID string. If None, returns all entities.
+            start_time: ISO 8601 timestamp string (e.g., '2025-11-20T00:00:00+00:00'). Defaults to 1 day ago.
+            end_time: ISO 8601 timestamp string. Defaults to now.
+            minimal_response: If True, returns minimal response with only state changes.
+            
+        Returns:
+            List of historical data or None on error
+        """
+        try:
+            # Build the URL
+            if entity_ids:
+                if isinstance(entity_ids, str):
+                    entity_ids = [entity_ids]
+                # Filter by specific entities
+                filter_param = ",".join(entity_ids)
+                url = f"{self.ha_url}/history/period"
+            else:
+                url = f"{self.ha_url}/history/period"
+            
+            # Add timestamp if provided
+            if start_time:
+                url = f"{url}/{start_time}"
+            
+            # Build query parameters
+            params = {}
+            if end_time:
+                params['end_time'] = end_time
+            if minimal_response:
+                params['minimal_response'] = 'true'
+            if entity_ids:
+                params['filter_entity_id'] = ",".join(entity_ids)
+            
+            response = requests.get(
+                url,
+                headers=self.headers,
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get history: {e}")
+            return None
