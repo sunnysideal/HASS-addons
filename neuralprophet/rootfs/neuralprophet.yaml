@@ -1,1 +1,21 @@
-history_sensor: sensor.plum_econet300_weather_temp
+# Update interval in minutes
+update_interval: 30
+
+# list of sensors to be predicted
+sensors:
+  - name: sensor.energy_usage_prediction
+    training_sensor: sensor.plum_econet300_weather_temp
+    days_history: 730 # number of days of history to use for training
+
+    periods_to_predict: 48 # number of periods to predict
+    period_duration: 30    # duration of each period in minutes
+
+    units: kWh
+  - name: sensor.solar_generation_prediction
+    training_sensor: sensor.plum_econet300_solar_power
+    days_history: 730 # number of days of history to use for training
+
+    periods_to_predict: 48 # number of periods to predict
+    period_duration: 30    # duration of each period in minutes
+
+    units: kWh

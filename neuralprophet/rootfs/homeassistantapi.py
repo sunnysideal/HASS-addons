@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import requests
+from datetime import datetime, timedelta
 
 # Set up basic logging first
 logging.basicConfig(
@@ -83,41 +84,33 @@ class HomeAssistantAPI:
             logger.error(f"Failed to call service: {e}")
             return None
     
-    def get_history(self, entity_ids=None, start_time=None, end_time=None, minimal_response=False):
-        """Get historical data for entities
+    def get_history(self, entity_id, days=1, minimal_response=False):
+        """Get historical data for an entity
         
         Args:
-            entity_ids: List of entity IDs or single entity ID string. If None, returns all entities.
-            start_time: ISO 8601 timestamp string (e.g., '2025-11-20T00:00:00+00:00'). Defaults to 1 day ago.
-            end_time: ISO 8601 timestamp string. Defaults to now.
+            entity_id: Entity ID string.
+            days: Number of days of history to retrieve (default: 1).
             minimal_response: If True, returns minimal response with only state changes.
             
         Returns:
             List of historical data or None on error
         """
         try:
-            # Build the URL
-            if entity_ids:
-                if isinstance(entity_ids, str):
-                    entity_ids = [entity_ids]
-                # Filter by specific entities
-                filter_param = ",".join(entity_ids)
-                url = f"{self.ha_url}/history/period"
-            else:
-                url = f"{self.ha_url}/history/period"
+            # Calculate start_time and end_time from days
+            start_dt = datetime.now() - timedelta(days=days)
+            start_time = start_dt.isoformat()
+            end_time = datetime.now().isoformat()
             
-            # Add timestamp if provided
-            if start_time:
-                url = f"{url}/{start_time}"
+            # Build the URL
+            url = f"{self.ha_url}/history/period/{start_time}"
             
             # Build query parameters
-            params = {}
-            if end_time:
-                params['end_time'] = end_time
+            params = {
+                'end_time': end_time,
+                'filter_entity_id': entity_id
+            }
             if minimal_response:
                 params['minimal_response'] = 'true'
-            if entity_ids:
-                params['filter_entity_id'] = ",".join(entity_ids)
             
             response = requests.get(
                 url,
