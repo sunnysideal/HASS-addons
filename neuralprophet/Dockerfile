@@ -2,26 +2,9 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-# Install build dependencies for compiling Python packages
-RUN apk add --no-cache --virtual .build-deps \
-    gcc \
-    g++ \
-    musl-dev \
-    linux-headers \
-    freetype-dev \
-    libpng-dev \
-    && apk add --no-cache \
-    freetype \
-    libpng
-
-# Copy requirements.txt into the container
-COPY requirements.txt /tmp/
-
-# Install the required Python packages
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
-
-# Remove build dependencies to reduce image size
-RUN apk del .build-deps
+# Note: If using pre-built base image, uncomment below and comment out BUILD_FROM above
+# ARG BUILD_ARCH=amd64
+# FROM ghcr.io/sunnysideal/neuralprophet-base:${BUILD_ARCH}
 
 # Copy root filesystem
 COPY rootfs /

@@ -1,12 +1,13 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: NeuralProphet
-version: "0.0.19"
+version: "0.0.21"
 slug: neuralprophet
 description: NeuralProphet add-on
 url: "https://github.com/sunnysideal/hass-addons/neuralprophet"
 arch:
   - aarch64
   - amd64
+image: "ghcr.io/home-assistant/{arch}-base-debian:bookworm"
 
 init: false
 homeassistant_api: true

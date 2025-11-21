@@ -1,0 +1,21 @@
+# Exclude wheels directory from Docker build context
+wheels/
+
+# Exclude Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Exclude git
+.git/
+.gitignore
+
+# Exclude IDE
+.vscode/
+.idea/
+
+# Exclude helper scripts
+download_wheels.py
+Dockerfile.base
