@@ -21,7 +21,7 @@ config = {}
 config_loaded = False
 
 logger.info(f"Checking for config at: {config_path}")   
-logger.info(f"  Exists: {config_path.exists()}")
+logger.info(f"Config Exists: {config_path.exists()}")
    
 try:
     if config_path.exists():
@@ -49,6 +49,7 @@ if states:
 # Get the history sensor from config or use default
 history_sensor = config.get('history_sensor')
 logger.info(f"Fetching history for {history_sensor}")
-logger.info(history_sensor)
+
 
 history = ha_api.get_history(history_sensor)
+logger.info(f"History data: {history}")
