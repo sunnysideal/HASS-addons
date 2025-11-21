@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+
+# Wheel cache for Docker builds (optional: commit these for faster builds)
+# wheels/
 .Python
 build/
 develop-eggs/
