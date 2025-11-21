@@ -7,8 +7,6 @@ url: "https://github.com/sunnysideal/hass-addons/neuralprophet"
 arch:
   - aarch64
   - amd64
-#image: "ghcr.io/home-assistant/{arch}-base-debian:bookworm"
-image: "ghcr.io/sunnysideal/neuralprophet-base/{arch}"
 
 init: false
 homeassistant_api: true
