@@ -17,13 +17,13 @@ class HomeAssistantAPI:
     def __init__(self, config=None):
         # Get the supervisor token from environment
         self.token = os.environ.get('SUPERVISOR_TOKEN')
-        
+        logger.info(f"Initializing HomeAssistantAPI client with token {self.token}")
         # Use config if provided, otherwise defaults
         if config is None:
             config = {}
         
         # Home Assistant API endpoint (from config or default)
-        self.ha_url = config.get('homeassistant', {}).get('url', "http://supervisor/core/api")
+        self.ha_url = config.get('homeassistant', {}).get('url', "http://supervisor/core")
         self.timeout = config.get('homeassistant', {}).get('timeout', 10)
         
         # Get settings from config
