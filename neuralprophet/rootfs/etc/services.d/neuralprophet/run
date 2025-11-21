@@ -7,4 +7,5 @@
 # Add your code here
 
 bashio::log.info "Predictor init script running"
-exec /run.sh
+/exec /run.sh
+python3 /startup.py
