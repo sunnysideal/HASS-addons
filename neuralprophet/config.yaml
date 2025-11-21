@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: NeuralProphet
-version: "0.0.17"
+version: "0.0.18"
 slug: neuralprophet
 description: NeuralProphet add-on
 url: "https://github.com/sunnysideal/hass-addons/neuralprophet"
