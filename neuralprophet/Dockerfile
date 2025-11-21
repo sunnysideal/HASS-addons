@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 # Copy root filesystem
 COPY rootfs /
 
-RUN chmod a+x /run.sh
+#RUN chmod a+x /run.sh
