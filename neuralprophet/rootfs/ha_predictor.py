@@ -132,16 +132,27 @@ def prepare_training_data(history_data):
     
     # Extract datetime and state values
     data_points = []
+    skipped_count = 0
     for record in entity_data:
         try:
+            # Skip if state is None, 'unknown', 'unavailable', or empty
+            state = record.get('state')
+            if state is None or state in ['unknown', 'unavailable', '']:
+                skipped_count += 1
+                continue
+            
             # Parse the timestamp
             timestamp = pd.to_datetime(record['last_changed'])
             # Convert state to float, skip if invalid
-            state_value = float(record['state'])
+            state_value = float(state)
             data_points.append({'ds': timestamp, 'y': state_value})
-        except (ValueError, KeyError) as e:
+        except (ValueError, KeyError, TypeError) as e:
+            skipped_count += 1
             logger.debug(f"Skipping invalid record: {e}")
             continue
+    
+    if skipped_count > 0:
+        logger.info(f"Skipped {skipped_count} invalid/unavailable records")
     
     if not data_points:
         logger.error("No valid data points found in history")
