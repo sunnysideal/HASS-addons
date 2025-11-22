@@ -72,13 +72,24 @@ def update_prediction_entity(ha_api, entity_id, forecast_df, units=''):
         # Get the latest prediction value
         latest_prediction = forecast_df.iloc[-1]['yhat1']
         
+        # Check if latest_prediction is None or NaN
+        if pd.isna(latest_prediction):
+            logger.error(f"Latest prediction is NaN for {entity_id}")
+            return False
+        
         # Format the forecast data as attributes
         forecast_list = []
         for _, row in forecast_df.iterrows():
-            forecast_list.append({
-                'datetime': row['ds'].isoformat(),
-                'value': float(row['yhat1'])
-            })
+            # Skip rows with NaN values
+            if pd.notna(row['yhat1']):
+                forecast_list.append({
+                    'datetime': row['ds'].isoformat(),
+                    'value': float(row['yhat1'])
+                })
+        
+        if not forecast_list:
+            logger.error(f"No valid forecast data for {entity_id}")
+            return False
         
         # Update the entity state with forecast as attributes
         attributes = {
