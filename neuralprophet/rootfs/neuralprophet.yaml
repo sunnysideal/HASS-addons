@@ -18,13 +18,30 @@ sensors:
     interval_duration: 30  # 30-minute intervals
     intervals_to_predict: 48  # Predict 24 hours (48 * 30min)
     units: "°C"
+    regressors:  # Optional: additional sensors to use as predictors
+      - sensor.outdoor_humidity
+      - sensor.wind_speed
     
-#  - training_entity_id: sensor.solar_power
-#    prediction_entity_id: sensor.solar_power_forecast
-#    history_days: 90   # Override: use 90 days for solar data
-#    interval_duration: 30
-#    intervals_to_predict: 96  # Predict 48 hours
-#    units: "kW"
+  - training_entity_id: sensor.haos_sbfspot_sma_energy_lifetime
+    prediction_entity_id: sensor.solar_power_prediction
+    history_days: 720   # Use 2 years of solar data for seasonal patterns
+    interval_duration: 30  # 30-minute intervals
+    intervals_to_predict: 144  # Predict 72 hours (144 * 30min)
+    units: "kWh"
+    cumulative: true  # Set to true for energy meters that always increase
+    regressors:
+      - entity_id: sensor.outdoor_temperature
+        type: sensor  # Regular sensor with history
+      - entity_id: sensor.openweathermap_cloud_coverage
+        type: sensor  # Regular sensor with history
+    weather_forecast:
+      entity_id: weather.home  # Weather entity with forecast attribute
+      attributes:  # Forecast attributes to use as regressors
+        - cloud_coverage
+        - temperature
+        
+
+        
     
 #  - training_entity_id: sensor.home_consumption
 #    prediction_entity_id: sensor.home_consumption_forecast

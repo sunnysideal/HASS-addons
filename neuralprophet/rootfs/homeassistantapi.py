@@ -151,3 +151,26 @@ class HomeAssistantAPI:
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get history: {e}")
             return None
+    
+    def get_weather_forecast(self, entity_id):
+        """Get weather forecast from a weather entity
+        
+        Args:
+            entity_id: Weather entity ID (e.g., 'weather.home')
+            
+        Returns:
+            List of forecast data or None on error
+        """
+        try:
+            state = self.get_entity_state(entity_id)
+            if state and 'attributes' in state:
+                forecast = state['attributes'].get('forecast', [])
+                if forecast:
+                    logger.info(f"Retrieved {len(forecast)} forecast periods from {entity_id}")
+                    return forecast
+                else:
+                    logger.warning(f"No forecast data in {entity_id}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get weather forecast: {e}")
+            return None
