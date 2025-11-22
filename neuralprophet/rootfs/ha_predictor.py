@@ -1,9 +1,11 @@
 import logging
 import yaml
 import pandas as pd
+import time
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from homeassistantapi import HomeAssistantAPI
+from neuralprophet import NeuralProphet
 
 # Set up basic logging first
 logging.basicConfig(
@@ -54,6 +56,53 @@ def get_sensors_from_config(config):
     return sensors
 
 
+def update_prediction_entity(ha_api, entity_id, forecast_df, units=''):
+    """Update a Home Assistant entity with prediction data
+    
+    Args:
+        ha_api: HomeAssistantAPI instance
+        entity_id: Entity ID to update
+        forecast_df: DataFrame with forecast (must have 'ds' and 'yhat1' columns)
+        units: Unit of measurement
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        # Get the latest prediction value
+        latest_prediction = forecast_df.iloc[-1]['yhat1']
+        
+        # Format the forecast data as attributes
+        forecast_list = []
+        for _, row in forecast_df.iterrows():
+            forecast_list.append({
+                'datetime': row['ds'].isoformat(),
+                'value': float(row['yhat1'])
+            })
+        
+        # Update the entity state with forecast as attributes
+        attributes = {
+            'unit_of_measurement': units,
+            'friendly_name': f"{entity_id.split('.')[-1].replace('_', ' ').title()}",
+            'forecast': forecast_list,  # Include all forecast predictions
+            'forecast_count': len(forecast_list),
+            'last_updated': datetime.now().isoformat()
+        }
+        
+        result = ha_api.set_state(entity_id, float(latest_prediction), attributes)
+        
+        if result is not None:
+            logger.info(f"Updated {entity_id} with prediction: {latest_prediction:.2f} {units}")
+            return True
+        else:
+            logger.error(f"Failed to update {entity_id}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error updating prediction entity {entity_id}: {e}", exc_info=True)
+        return False
+
+
 def prepare_training_data(history_data):
     """Convert Home Assistant history data to NeuralProphet format
     
@@ -95,30 +144,159 @@ def prepare_training_data(history_data):
     return df
 
 
-logger.info("Home Assistant Add-on starting...")
+def process_sensors(ha_api, sensors, default_history_days, default_interval_duration, default_intervals_to_predict):
+    """Process all sensors and prepare training data
+    
+    Args:
+        ha_api: HomeAssistantAPI instance
+        sensors: List of sensor configurations
+        default_history_days: Default number of days if not specified per sensor
+        default_interval_duration: Default interval duration in minutes
+        default_intervals_to_predict: Default number of intervals to predict
+    """
+    # Process each sensor
+    for sensor_config in sensors:
+        training_entity_id = sensor_config.get('training_entity_id')
+        prediction_entity_id = sensor_config.get('prediction_entity_id')
+        
+        if not training_entity_id:
+            logger.warning(f"Sensor configuration missing training_entity_id: {sensor_config}")
+            continue
+        
+        if not prediction_entity_id:
+            logger.warning(f"Sensor configuration missing prediction_entity_id: {sensor_config}")
+            continue
+        
+        # Get configuration for this specific sensor, or use defaults
+        history_days = sensor_config.get('history_days', default_history_days)
+        interval_duration = sensor_config.get('interval_duration', default_interval_duration)
+        intervals_to_predict = sensor_config.get('intervals_to_predict', default_intervals_to_predict)
+        units = sensor_config.get('units', '')
+        
+        logger.info(f"Processing sensor:")
+        logger.info(f"  - Training from: {training_entity_id}")
+        logger.info(f"  - Prediction to: {prediction_entity_id}")
+        logger.info(f"  - History: {history_days} days")
+        logger.info(f"  - Interval duration: {interval_duration} minutes")
+        logger.info(f"  - Intervals to predict: {intervals_to_predict}")
+        logger.info(f"  - Units: {units}")
+        
+        # Fetch history for this sensor
+        try:
+            training_data = ha_api.get_history(training_entity_id, days=history_days, minimal_response=True)
+            
+            if not training_data or len(training_data) == 0:
+                logger.error(f"No history data retrieved for {training_entity_id}")
+                continue
+            
+            logger.info(f"Retrieved {len(training_data[0])} history records for {training_entity_id}")
+            
+            # Prepare data for NeuralProphet
+            df = prepare_training_data(training_data)
+            
+            if df is not None and len(df) > 0:
+                logger.info(f"Training data prepared successfully for {training_entity_id}")
+                logger.info(f"  - Data points: {len(df)}")
+                logger.info(f"  - Date range: {df['ds'].min()} to {df['ds'].max()}")
+                logger.info(f"  - Sample data:\n{df.head()}")
+                
+                # Train NeuralProphet model
+                logger.info(f"Training NeuralProphet model for {training_entity_id}...")
+                
+                # Calculate n_lags based on interval duration (96 = 48 hours for 30-min intervals)
+                n_lags = int((48 * 60) / interval_duration)  # 48 hours worth of lags
+                freq = f"{interval_duration}min"
+                
+                model = NeuralProphet(
+                    daily_seasonality=True,
+                    weekly_seasonality=True,
+                    yearly_seasonality=True,
+                    n_lags=n_lags,
+                    epochs=50,  # Adjust based on your needs
+                    learning_rate=0.01,
+                    batch_size=32
+                )
+                
+                # Fit the model
+                metrics = model.fit(df, freq=freq)
+                logger.info(f"Model training complete for {training_entity_id}")
+                
+                # Make future dataframe for predictions
+                future = model.make_future_dataframe(df, periods=intervals_to_predict, n_historic_predictions=True)
+                
+                # Generate forecast
+                logger.info(f"Generating {intervals_to_predict} interval predictions...")
+                forecast = model.predict(future)
+                
+                # Extract only future predictions (not historical)
+                future_forecast = forecast.tail(intervals_to_predict)
+                logger.info(f"Forecast generated: {len(future_forecast)} predictions")
+                logger.info(f"  - Forecast range: {future_forecast['ds'].min()} to {future_forecast['ds'].max()}")
+                logger.info(f"  - Sample forecast:\n{future_forecast[['ds', 'yhat1']].head()}")
+                
+                # Update prediction entity in Home Assistant
+                success = update_prediction_entity(ha_api, prediction_entity_id, future_forecast, units)
+                
+                if success:
+                    logger.info(f"Successfully updated {prediction_entity_id} with forecast")
+                else:
+                    logger.warning(f"Failed to update {prediction_entity_id}")
+                
+            else:
+                logger.error(f"Failed to prepare training data for {training_entity_id}")
+                
+        except Exception as e:
+            logger.error(f"Error processing sensor {training_entity_id}: {e}", exc_info=True)
+            continue
 
-# Load configuration from neuralprophet.yaml
+
+logger.info("Home Assistant NeuralProphet Add-on starting...")
+
+# Configuration path
 config_path = Path('/config/neuralprophet.yaml')  # HA config directory (addon_config mapping)
-config = load_config(config_path)
-
-# Get sensors from config
-sensors = get_sensors_from_config(config)
 
 ha_api = HomeAssistantAPI()
 
-
-# Get the history sensor from config or use default
-training_sensor = sensors[0].get('training_sensor')
-logger.info(f"Fetching history for {training_sensor}")
-
-training_data = ha_api.get_history(training_sensor, days=1, minimal_response = True)
-logger.info(f"Retrieved {len(training_data[0]) if training_data and len(training_data) > 0 else 0} history records")
-
-# Prepare data for NeuralProphet
-df = prepare_training_data(training_data)
-if df is not None:
-    logger.info(f"Training data prepared successfully")
-    logger.info(f"DataFrame shape: {df.shape}")
-    logger.info(f"DataFrame head:\n{df.head()}")
-else:
-    logger.error("Failed to prepare training data")
+# Main loop - run continuously at specified interval
+while True:
+    try:
+        logger.info(f"Starting training cycle at {datetime.now()}")
+        
+        # Load configuration from neuralprophet.yaml (reload each cycle)
+        config = load_config(config_path)
+        
+        # Get sensors from config
+        sensors = get_sensors_from_config(config)
+        
+        if not sensors:
+            logger.error("No sensors configured in neuralprophet.yaml")
+            logger.info("Retrying in 60 seconds")
+            time.sleep(60)
+            continue
+        
+        # Get global configuration
+        default_history_days = config.get('history_days', 60)  # Default 60 days for 30-min intervals
+        update_interval_minutes = config.get('update_interval', 60)  # Default 60 minutes
+        update_interval = update_interval_minutes * 60  # Convert to seconds
+        default_interval_duration = config.get('interval_duration', 30)  # Default 30 minutes
+        default_intervals_to_predict = config.get('intervals_to_predict', 48)  # Default 48 intervals
+        
+        logger.info(f"Configuration:")
+        logger.info(f"  - Default history: {default_history_days} days")
+        logger.info(f"  - Update interval: {update_interval_minutes} minutes ({update_interval} seconds)")
+        logger.info(f"  - Default interval duration: {default_interval_duration} minutes")
+        logger.info(f"  - Default intervals to predict: {default_intervals_to_predict}")
+        logger.info(f"  - Sensors: {len(sensors)}")
+        
+        process_sensors(ha_api, sensors, default_history_days, default_interval_duration, default_intervals_to_predict)
+        
+        logger.info(f"Training cycle complete. Next run in {update_interval} seconds")
+        time.sleep(update_interval)
+        
+    except KeyboardInterrupt:
+        logger.info("Shutting down gracefully...")
+        break
+    except Exception as e:
+        logger.error(f"Error in main loop: {e}", exc_info=True)
+        logger.info(f"Retrying in {update_interval} seconds")
+        time.sleep(update_interval)

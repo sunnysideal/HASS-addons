@@ -84,6 +84,34 @@ class HomeAssistantAPI:
             logger.error(f"Failed to call service: {e}")
             return None
     
+    def set_state(self, entity_id, state, attributes=None):
+        """Set the state of an entity
+        
+        Args:
+            entity_id: Entity ID to update
+            state: New state value
+            attributes: Dictionary of attributes to set
+            
+        Returns:
+            Response JSON or None on error
+        """
+        try:
+            data = {
+                'state': state,
+                'attributes': attributes or {}
+            }
+            response = requests.post(
+                f"{self.ha_url}/states/{entity_id}",
+                headers=self.headers,
+                json=data,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to set state for {entity_id}: {e}")
+            return None
+    
     def get_history(self, entity_id, days=1, minimal_response=False):
         """Get historical data for an entity
         

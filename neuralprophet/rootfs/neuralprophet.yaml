@@ -1,21 +1,34 @@
-# Update interval in minutes
-update_interval: 30
+# Default number of days of history to fetch (can be overridden per sensor)
+history_days: 60
 
-# list of sensors to be predicted
+# Update interval in minutes (how often to retrain models)
+update_interval: 60
+
+# Default interval duration in minutes (can be overridden per sensor)
+interval_duration: 30
+
+# Default number of intervals to predict (can be overridden per sensor)
+intervals_to_predict: 48
+
+# List of sensors to train and predict
 sensors:
-  - name: sensor.energy_usage_prediction
-    training_sensor: sensor.plum_econet300_weather_temp
-    days_history: 730 # number of days of history to use for training
-
-    periods_to_predict: 48 # number of periods to predict
-    period_duration: 30    # duration of each period in minutes
-
-    units: kWh
-  - name: sensor.solar_generation_prediction
-    training_sensor: sensor.plum_econet300_solar_power
-    days_history: 730 # number of days of history to use for training
-
-    periods_to_predict: 48 # number of periods to predict
-    period_duration: 30    # duration of each period in minutes
-
-    units: kWh
+  - training_entity_id: sensor.plum_econet300_weather_temp
+    prediction_entity_id: sensor.weather_temp_prediction
+    history_days: 730  # Override: use 2 years of data for this sensor
+    interval_duration: 30  # 30-minute intervals
+    intervals_to_predict: 48  # Predict 24 hours (48 * 30min)
+    units: "°C"
+    
+#  - training_entity_id: sensor.solar_power
+#    prediction_entity_id: sensor.solar_power_forecast
+#    history_days: 90   # Override: use 90 days for solar data
+#    interval_duration: 30
+#    intervals_to_predict: 96  # Predict 48 hours
+#    units: "kW"
+    
+#  - training_entity_id: sensor.home_consumption
+#    prediction_entity_id: sensor.home_consumption_forecast
+#    # No history_days specified, will use default (60 days)
+#    interval_duration: 30
+#    intervals_to_predict: 48
+#    units: "kWh"
