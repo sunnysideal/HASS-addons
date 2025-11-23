@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.2.2
+
+- Add `if __name__ == "__main__": main()` to ha_predictor.py to ensure main logic runs when executed as a script (fixes add-on not running in production).
+
 ## 0.2.1
 
 - Add `pvlib` to requirements.txt for sun position calculation support (required for sun azimuth/elevation regressors)

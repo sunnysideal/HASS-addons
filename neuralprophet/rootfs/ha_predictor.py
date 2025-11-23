@@ -1057,3 +1057,6 @@ def main():
             logger.error(f"Error in main loop: {e}", exc_info=True)
             logger.info(f"Retrying in {update_interval} seconds")
             time.sleep(update_interval)
+
+if __name__ == "__main__":
+    main()
