@@ -5,3 +5,4 @@ pandas>=2.0.0
 numpy>=1.25.0,<2.0.0
 pytorch-lightning>=2.0.0,<2.4.0
 neuralprophet==0.9.0
+pvlib

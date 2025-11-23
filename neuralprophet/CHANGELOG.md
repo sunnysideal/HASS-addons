@@ -1,5 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.2.1
+
+- Add `pvlib` to requirements.txt for sun position calculation support (required for sun azimuth/elevation regressors)
+
 ## 0.1.6
 
 - Add SQLite database storage for persistent training history
