@@ -162,14 +162,32 @@ class HomeAssistantAPI:
             List of forecast data or None on error
         """
         try:
-            state = self.get_entity_state(entity_id)
-            if state and 'attributes' in state:
-                forecast = state['attributes'].get('forecast', [])
+            # Call the weather.get_forecasts service
+            service_data = {
+                "entity_id": entity_id,
+                "type": "hourly"  # or "daily" or "twice_daily"
+            }
+            
+            response = requests.post(
+                f"{self.ha_url}/services/weather/get_forecasts?return_response=true",
+                headers=self.headers,
+                json=service_data,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            result = response.json()
+            
+            # The response format is: {"service_response": {entity_id: {"forecast": [...]}}}
+            service_response = result.get('service_response', {})
+            if entity_id in service_response:
+                forecast = service_response[entity_id].get('forecast', [])
                 if forecast:
                     logger.info(f"Retrieved {len(forecast)} forecast periods from {entity_id}")
                     return forecast
                 else:
-                    logger.warning(f"No forecast data in {entity_id}")
+                    logger.warning(f"No forecast data in response from {entity_id}")
+            else:
+                logger.warning(f"Entity {entity_id} not in forecast response")
             return None
         except Exception as e:
             logger.error(f"Failed to get weather forecast: {e}")

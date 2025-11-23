@@ -1,0 +1,5 @@
+# Development dependencies
+python-dotenv>=1.0.0
+
+# Include all runtime dependencies
+-r requirements.txt
