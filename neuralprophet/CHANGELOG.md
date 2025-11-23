@@ -1,5 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+
+## 0.2.3
+
+- Ensure regressor tables are created before storing regressor history in the database (fixes regressor DB persistence in production)
+
 ## 0.2.2
 
 - Add `if __name__ == "__main__": main()` to ha_predictor.py to ensure main logic runs when executed as a script (fixes add-on not running in production).

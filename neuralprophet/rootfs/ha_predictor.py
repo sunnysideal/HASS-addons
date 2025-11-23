@@ -622,7 +622,13 @@ def process_sensors(ha_api, sensors, default_history_days, default_interval_dura
                                 use_database=use_database
                             )
                             # Write regressor history to the database if enabled and available
+                            logger.info(f"[DIAG] Regressor DB write check: use_database={use_database}, db is not None={db is not None}, reg_df is not None={reg_df is not None}, regressor_entity_id in reg_df.columns={regressor_entity_id in reg_df.columns if reg_df is not None else 'reg_df is None'}")
                             if use_database and db is not None and reg_df is not None and regressor_entity_id in reg_df.columns:
+                                reg_table_id = f"{regressor_entity_id}"
+                                try:
+                                    db.create_table(reg_table_id)
+                                except Exception as e:
+                                    logger.error(f"Failed to create regressor table {reg_table_id}: {e}")
                                 reg_table_id = f"{regressor_entity_id}"
                                 # Prepare DataFrame with 'ds' and 'y' columns for store_history
                                 reg_store_df = reg_df.rename(columns={regressor_entity_id: 'y'})[['ds', 'y']]
