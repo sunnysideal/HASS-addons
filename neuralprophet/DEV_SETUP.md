@@ -45,7 +45,7 @@ Edit `rootfs/neuralprophet.yaml` with your sensor entity IDs from Home Assistant
 ### 5. Run Locally
 
 ```powershell
-python dev_run.py
+python dev/dev_run.py
 ```
 
 ## Notes

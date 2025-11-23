@@ -1,5 +1,15 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.1.6
+
+- Add SQLite database storage for persistent training history
+- Enable multi-year training periods beyond Home Assistant API limits
+- Implement incremental data updates (fetch only recent data when database enabled)
+- Add automatic cleanup of old data based on configurable max_age
+- Store regressor data in separate database tables
+- Add global and per-sensor database configuration options
+- Update documentation with database setup and configuration guide
+
 ## 0.1.5
 
 - Fix multi-step forecasting by implementing extended dataset approach from working examples

@@ -39,6 +39,6 @@ Write-Host ""
 Write-Host "Setup complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "To run the addon locally:" -ForegroundColor Cyan
-Write-Host "  python dev_run.py" -ForegroundColor White
+Write-Host "  python dev/dev_run.py" -ForegroundColor White
 Write-Host ""
 Write-Host "Make sure to edit rootfs/neuralprophet.yaml with your sensor entity IDs" -ForegroundColor Yellow

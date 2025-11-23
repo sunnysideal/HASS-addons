@@ -1,6 +1,16 @@
 # Exclude wheels directory from Docker build context
 wheels/
 
+# Exclude development and test files
+dev/
+venv/
+*.env
+.env.example
+setup-dev.ps1
+DEV_SETUP.md
+BUILD_BASE_IMAGE.md
+requirements-dev.txt
+
 # Exclude Python cache
 __pycache__/
 *.pyc

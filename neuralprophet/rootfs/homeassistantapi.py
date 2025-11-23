@@ -4,17 +4,13 @@ import logging
 import requests
 from datetime import datetime, timedelta
 
-# Set up basic logging first
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 
 class HomeAssistantAPI:
-    """Client for interacting with Home Assistant API"""
-    
+
+
+
     def __init__(self, config=None):
         # Get the supervisor token from environment
         self.token = os.environ.get('SUPERVISOR_TOKEN')
@@ -25,7 +21,7 @@ class HomeAssistantAPI:
         
         # Home Assistant API endpoint (from config or default)
         self.ha_url = config.get('homeassistant', {}).get('url', "http://supervisor/core/api")
-        self.timeout = config.get('homeassistant', {}).get('timeout', 10)
+        self.timeout = config.get('homeassistant', {}).get('timeout', 30)
         
         # Get settings from config
         self.max_retries = config.get('settings', {}).get('max_retries', 3)
@@ -40,7 +36,32 @@ class HomeAssistantAPI:
         if not self.token:
             logger.error("SUPERVISOR_TOKEN not found in environment")
             sys.exit(1)
-    
+        
+    def get_location(self):
+        """Get latitude, longitude, and elevation from Home Assistant config"""
+        try:
+            response = requests.get(
+                f"{self.ha_url}/config",
+                headers=self.headers,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            data = response.json()
+            # logger.info(f"HA /config response: {data}")
+            latitude = data.get('latitude')
+            longitude = data.get('longitude')
+            elevation = data.get('elevation', 0)
+            logger.info(f"Parsed location: lat={latitude}, lon={longitude}, elev={elevation}")
+            if latitude is not None and longitude is not None:
+                logger.info(f"Fetched HA location: lat={latitude}, lon={longitude}, elev={elevation}")
+                return latitude, longitude, elevation
+            else:
+                logger.error("Latitude or longitude not found in HA config response")
+                return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get HA location: {e}")
+            return None
+            
     def get_states(self):
         """Get all entity states from Home Assistant"""
         try:

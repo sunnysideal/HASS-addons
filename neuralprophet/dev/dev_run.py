@@ -1,3 +1,17 @@
+
+import logging
+# Remove all handlers associated with the root logger object.
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+)
+
+# Optionally, set a specific log level for neuralprophet if you want less/more verbosity
+logging.getLogger('neuralprophet').setLevel(logging.INFO)
+
 """
 Local development script for NeuralProphet Home Assistant addon
 Connects to a remote Home Assistant instance for testing
@@ -8,17 +22,21 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Add rootfs to path so we can import the modules
-sys.path.insert(0, str(Path(__file__).parent / 'rootfs'))
+rootfs_path = Path(__file__).parent.parent / 'rootfs'
+sys.path.insert(0, str(rootfs_path))
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file (in repository root)
+env_file = Path(__file__).parent.parent / '.env'
+load_dotenv(env_file)
 
 # Set up environment variables for local development
 os.environ['SUPERVISOR_TOKEN'] = os.getenv('HA_TOKEN', '')
 os.environ['HA_URL'] = os.getenv('HA_URL', 'http://localhost:8123')
+os.environ['DEV_CONFIG_PATH'] = os.getenv('DEV_CONFIG_PATH', '')
 
 # Set config path environment variable for dev
-config_file = Path(__file__).parent / 'rootfs' / 'neuralprophet.yaml'
+config_file = Path(__file__).parent / 'neuralprophet.yaml'
+#config_file = rootfs_path / 'neuralprophet.yaml'
 if not config_file.exists():
     print(f"ERROR: Configuration file not found at: {config_file.absolute()}")
     print("Please ensure rootfs/neuralprophet.yaml exists")
@@ -26,6 +44,11 @@ if not config_file.exists():
 
 os.environ['DEV_CONFIG_PATH'] = str(config_file.absolute())
 print(f"Using config file: {config_file.absolute()}")
+
+# Set dev database path (in dev folder, excluded from git)
+dev_db_path = Path(__file__).parent / 'neuralprophet_dev.db'
+os.environ['DEV_DB_PATH'] = str(dev_db_path.absolute())
+print(f"Using dev database: {dev_db_path.absolute()}")
 
 # Import after setting environment
 from homeassistantapi import HomeAssistantAPI
@@ -67,3 +90,4 @@ print("")
 
 # Import and run ha_predictor - it will use the DEV_CONFIG_PATH environment variable
 import ha_predictor
+ha_predictor.main()

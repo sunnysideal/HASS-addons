@@ -10,6 +10,13 @@ interval_duration: 30
 # Default number of intervals to predict (can be overridden per sensor)
 intervals_to_predict: 48
 
+# Database settings (optional)
+# Enable database storage to retain training data beyond HA history limits
+database:
+  enabled: false  # Set to true to enable database storage
+  max_age: 730    # Maximum days to retain in database (default: 2 years)
+  path: /config/neuralprophet.db  # Database file (stored in addon_configs folder)
+
 # List of sensors to train and predict
 sensors:
   # - training_entity_id: sensor.plum_econet300_weather_temp
@@ -51,6 +58,8 @@ sensors:
     intervals_to_predict: 144  # Predict 72 hours (144 * 30min)
     units: "kWh"
     cumulative: true  # Set to true for energy meters that always increase
+    database: true  # Enable database storage for this sensor (overrides global setting)
+    max_age: 1095  # Keep 3 years of data for this sensor (overrides global max_age)
     regressors:
 #      - entity_id: sensor.gw1000a_pro_outdoor_temperature
 #        type: sensor  # Regular sensor with history
