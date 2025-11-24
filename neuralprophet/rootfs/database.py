@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class Database:
+
+    
+    
     """SQLite database manager for storing sensor training history.
     
     Stores resampled sensor and regressor data incrementally to enable
@@ -79,6 +82,15 @@ class Database:
             logger.error(f"Failed to create table {table_name}: {e}")
             raise
     
+    def initialize_sensor_table(self, entity_id, max_age):
+        """Create table and cleanup old data for a sensor entity."""
+        try:
+            self.create_table(entity_id)
+            self.cleanup_table(entity_id, max_age)
+        except Exception as e:
+            logger.error(f"Database initialization failed for {entity_id}: {e}")
+            raise
+
     def get_history(self, entity_id):
         """Retrieve all historical data for a sensor.
         

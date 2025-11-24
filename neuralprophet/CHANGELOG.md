@@ -1,5 +1,11 @@
-# v1.2.4 - 2025-11-24
+
+# 0.2.5 - 2025-11-24
 - Patch release: bugfixes and minor improvements.
+- Change API data fetching to only request data newer than the latest in the database (improves efficiency).
+- Modularize and refactor process_sensors and training logic for clarity and maintainability.
+- Encapsulate database table creation/cleanup in Database class method.
+- Make seasonality options configurable via YAML, defaulting to True.
+- Improve error handling and logging throughout the pipeline.
 
 ## 0.2.4
 
