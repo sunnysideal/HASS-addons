@@ -121,7 +121,7 @@ def get_sensors_from_config(config):
     return sensors
 
 
-def update_prediction_entity(ha_api, entity_id, forecast_df, units='', non_negative=False):
+def update_prediction_entity(ha_api, entity_id, forecast_df, units='', non_negative=False, actual_df=None):
     """Update a Home Assistant entity with prediction data
     
     Args:
@@ -130,59 +130,114 @@ def update_prediction_entity(ha_api, entity_id, forecast_df, units='', non_negat
         forecast_df: DataFrame with forecast (must have 'ds' and 'yhat1' columns)
         units: Unit of measurement
         non_negative: If True, clip predictions to non-negative values (for energy meters, etc.)
+        actual_df: DataFrame with actual values (optional)
+        previous_forecast_df: DataFrame with previous forecast (optional)
         
     Returns:
         True if successful, False otherwise
     """
+
+    # when the forecast_df first entry is for the start of a new day, ie 00:00,
+    # we want to store that as previous_forecast attribute
+    # we also want to store it if there is no previous_forecast attribute already in the entity_id attributes
+
+    # if there is a previous_forecast attribute, and it is not for the start of a new day,
+    # fetch it and write it back when we update the entity     
+
+
+
+
     try:
-        # Clip predictions to non-negative if required (for cumulative/energy sensors)
-        if non_negative:
-            forecast_df = forecast_df.copy()
-            negative_count = (forecast_df['yhat1'] < 0).sum()
-            if negative_count > 0:
-                logger.info(f"Clipping {negative_count} negative predictions to 0 for {entity_id}")
-                forecast_df['yhat1'] = forecast_df['yhat1'].clip(lower=0)
-        
+        # Validate forecast_df
+        if forecast_df is None or not hasattr(forecast_df, 'empty') or forecast_df.empty:
+            logger.error(f"No forecast data provided for {entity_id}")
+            return False
+
+        # Ensure required columns exist
+        if 'ds' not in forecast_df.columns or 'yhat1' not in forecast_df.columns:
+            logger.error(f"Forecast DataFrame missing required columns for {entity_id}")
+            return False
+
+        # Remove rows with NaN predictions
+        valid_forecast = forecast_df[pd.notna(forecast_df['yhat1'])]
+        if valid_forecast.empty:
+            logger.error(f"No valid forecast data for {entity_id}")
+            return False
+
         # Get the latest prediction value
-        latest_prediction = forecast_df.iloc[-1]['yhat1']
-        
-        # Check if latest_prediction is None or NaN
+        latest_prediction = valid_forecast.iloc[-1]['yhat1']
         if pd.isna(latest_prediction):
             logger.error(f"Latest prediction is NaN for {entity_id}")
             return False
-        
+
         # Format the forecast data as attributes
-        forecast_list = []
-        for _, row in forecast_df.iterrows():
-            # Skip rows with NaN values
-            if pd.notna(row['yhat1']):
-                forecast_list.append({
-                    'datetime': row['ds'].isoformat(),
-                    'value': float(row['yhat1'])
-                })
-        
-        if not forecast_list:
-            logger.error(f"No valid forecast data for {entity_id}")
-            return False
-        
-        # Update the entity state with forecast as attributes
-        attributes = {
+        forecast_list = [
+            {
+                'datetime': row['ds'].isoformat() if hasattr(row['ds'], 'isoformat') else str(row['ds']),
+                'value': float(row['yhat1'])
+            }
+            for _, row in valid_forecast.iterrows()
+        ]
+
+        # Prepare actuals if provided
+        actual_list = []
+        if actual_df is not None and hasattr(actual_df, 'empty') and not actual_df.empty:
+            if 'ds' in actual_df.columns and 'y' in actual_df.columns:
+                valid_actual = actual_df[pd.notna(actual_df['y'])]
+                actual_list = [
+                    {
+                        'datetime': row['ds'].isoformat() if hasattr(row['ds'], 'isoformat') else str(row['ds']),
+                        'value': float(row['y'])
+                    }
+                    for _, row in valid_actual.iterrows()
+                ]
+
+        # Add dev marker if running in dev environment
+        attributes = {}
+        is_dev = False
+        if os.environ.get('DEV_CONFIG_PATH') or os.environ.get('DEV_MODE', '').lower() == 'true':
+            is_dev = True
+
+        # --- Previous Forecast Logic ---
+        previous_forecast = None
+        # Check if the first entry in forecast_list is for 00:00
+        if forecast_list:
+            first_dt = pd.to_datetime(forecast_list[0]['datetime'])
+            if first_dt.hour == 0 and first_dt.minute == 0:
+                previous_forecast = forecast_list
+        # Fetch current state to check for existing previous_forecast
+        current_state = ha_api.get_entity_state(entity_id)
+        if current_state and 'attributes' in current_state:
+            current_attrs = current_state['attributes']
+            if previous_forecast is None and 'previous_forecast' in current_attrs:
+                # If not a new day, but previous_forecast exists, keep it
+                previous_forecast = current_attrs['previous_forecast']
+        if previous_forecast is None:
+            previous_forecast = forecast_list
+        # Add standard attributes
+        attributes.update({
+            'dev_environment': is_dev,
+            'last_updated': datetime.now().isoformat(),
             'unit_of_measurement': units,
             'friendly_name': f"{entity_id.split('.')[-1].replace('_', ' ').title()}",
-            'forecast': forecast_list,  # Include all forecast predictions
+            'forecast': forecast_list,
             'forecast_count': len(forecast_list),
-            'last_updated': datetime.now().isoformat()
-        }
-        
+        })
+        if actual_list:
+            attributes['actual'] = actual_list
+            attributes['actual_count'] = len(actual_list)
+        if previous_forecast is not None:
+            attributes['previous_forecast'] = previous_forecast
+
         result = ha_api.set_state(entity_id, float(latest_prediction), attributes)
-        
+
         if result is not None:
             logger.info(f"Updated {entity_id} with prediction: {latest_prediction:.2f} {units}")
             return True
         else:
             logger.error(f"Failed to update {entity_id}")
             return False
-            
+
     except Exception as e:
         logger.error(f"Error updating prediction entity {entity_id}: {e}", exc_info=True)
         return False
@@ -955,9 +1010,27 @@ def process_sensors(ha_api, sensors, default_history_days, default_interval_dura
                         logger.info(f"  - Nighttime predictions (10pm-4am): {len(night_predictions)} intervals")
                         logger.info(f"    Min: {night_predictions['yhat1'].min():.4f}, Max: {night_predictions['yhat1'].max():.4f}, Mean: {night_predictions['yhat1'].mean():.4f}")
                 
+                # Prepare actuals: most recent intervals_to_predict values from cleaned training data (df)
+                actuals_df = None
+                if df is not None and len(df) > 0:
+                    actuals_df = df.sort_values('ds').tail(intervals_to_predict)[['ds', 'y']].copy()
+
+                # For cumulative sensors, clip predictions to non-negative values before writing
+                forecast_to_write = future_forecast.copy() if future_forecast is not None else None
+                if cumulative and forecast_to_write is not None and 'yhat1' in forecast_to_write.columns:
+                    negative_count = (forecast_to_write['yhat1'] < 0).sum()
+                    if negative_count > 0:
+                        logger.info(f"Clipping {negative_count} negative predictions to 0 for {prediction_entity_id}")
+                        forecast_to_write['yhat1'] = forecast_to_write['yhat1'].clip(lower=0)
+
                 # Update prediction entity in Home Assistant
-                # For cumulative sensors, clip predictions to non-negative values
-                success = update_prediction_entity(ha_api, prediction_entity_id, future_forecast, units, non_negative=cumulative)
+                success = update_prediction_entity(
+                    ha_api,
+                    prediction_entity_id,
+                    forecast_to_write,
+                    units,
+                    actual_df=actuals_df
+                )
                 
                 if success:
                     logger.info(f"Successfully updated {prediction_entity_id} with forecast")

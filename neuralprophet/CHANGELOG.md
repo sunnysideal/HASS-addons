@@ -1,3 +1,12 @@
+
+## 0.2.4
+
+- Add `previous_forecast` attribute to prediction sensor: stores the forecast for the start of a new day (00:00) for later comparison with actuals. If not a new day, preserves the previous value.
+- Add `actual` attribute to prediction sensor: stores the most recent `intervals_to_predict` values of cleaned training (actual) data for easier comparison in Home Assistant.
+- Add `dev_environment` marker attribute to sensor when running in development mode for clear environment identification.
+- Refactor: Move non-negative clipping for cumulative sensors out of `update_prediction_entity` and into `process_sensors` for better separation of concerns.
+- Improve robustness and validation in `update_prediction_entity` (checks for valid data, attributes, and error handling).
+
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
 

@@ -2,7 +2,7 @@
 history_days: 60
 
 # Update interval in minutes (how often to retrain models)
-update_interval: 10
+update_interval: 5
 
 # Default interval duration in minutes (can be overridden per sensor)
 interval_duration: 30
@@ -51,33 +51,28 @@ sensors:
       #   future_attribute: uv_index  # Use forecast attribute for future values
         
 
-  # - training_entity_id: sensor.haos_sbfspot_sma_energy_lifetime
+  - training_entity_id: sensor.haos_sbfspot_sma_energy_lifetime
 
-  #   prediction_entity_id: sensor.solar_power_prediction_two
-  #   history_days: 720   # Use 2 years of solar data for seasonal patterns
-  #   interval_duration: 30  # 30-minute intervals
-  #   intervals_to_predict: 144  # Predict 72 hours (144 * 30min)
-  #   units: "kWh"
-  #   cumulative: true  # Set to true for energy meters that always increase
-  #   database: true  # Enable database storage for this sensor (overrides global setting)
-  #   max_age: 1095  # Keep 3 years of data for this sensor (overrides global max_age)
-  #   regressors:
-  #     - entity_id: sensor.openweathermap_uv_index
-  #       type: sensor  # Regular sensor with history
-  #       future_entity_id: weather.forecast_home
-  #       future_entity_type: weather  # Use weather forecast attribute
-  #       future_attribute: uv_index  # Use forecast attribute for future values
-  #     - entity_id: sun.azel
-  #       type: calculated  # Calculated regressor, not from HA
-  #       future: true  # Indicates future values should be calculated
+    prediction_entity_id: sensor.solar_power_prediction_two
+    history_days: 720   # Use 2 years of solar data for seasonal patterns
+    interval_duration: 30  # 30-minute intervals
+    intervals_to_predict: 144  # Predict 72 hours (144 * 30min)
+    units: "kWh"
+    cumulative: true  # Set to true for energy meters that always increase
+    database: true  # Enable database storage for this sensor (overrides global setting)
+    max_age: 1095  # Keep 3 years of data for this sensor (overrides global max_age)
+    regressors:
+      - entity_id: sensor.openweathermap_uv_index
+        type: sensor  # Regular sensor with history
+        future_entity_id: weather.forecast_home
+        future_entity_type: weather  # Use weather forecast attribute
+        future_attribute: uv_index  # Use forecast attribute for future values
+      - entity_id: sun.azel
+        type: calculated  # Calculated regressor, not from HA
+        future: true  # Indicates future values should be calculated
   #       #latitude: 51.5074  # Example: London, replace with your lat
   #       #longitude: -0.1278 # Example: London, replace with your lon
   #       #elevation: 24      # Example: meters above sea level
-  #     # - entity_id: sensor.openweathermap_cloud_coverage
-  #     #   type: sensor  # Regular sensor with history
-  #     #   future_entity_id: weather.forecast_home
-  #     #   future_entity_type: weather  # Use weather forecast attribute
-  #     #   future_attribute: cloud_coverage  # Use forecast attribute for future values
         
 
   - training_entity_id: sensor.shellyemg3_dcb4d9ce52c0_energy_meter_0_total_active_energy
