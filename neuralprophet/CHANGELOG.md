@@ -1,3 +1,5 @@
+# v1.2.4 - 2025-11-24
+- Patch release: bugfixes and minor improvements.
 
 ## 0.2.4
 
