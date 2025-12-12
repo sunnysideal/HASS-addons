@@ -15,7 +15,7 @@ RUN apk add --no-cache python3 py3-pip \
 
 # Copy application files
 COPY requirements.txt /opt/app/requirements.txt
-COPY upstream/mqtt_publisher.py /opt/app/mqtt_publisher.py
+COPY mqtt_publisher.py /opt/app/mqtt_publisher.py
 COPY run.sh /run.sh
 
 # Install Python dependencies and prepare runtime
