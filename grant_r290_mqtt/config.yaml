@@ -1,5 +1,5 @@
 name: Grant R290 MQTT Publisher
-version: "0.1.8"
+version: "0.1.9"
 slug: grant_r290_mqtt
 description: Publishes Grant R290 Econet metrics to MQTT with Home Assistant discovery
 url: https://github.com/mikewhitby/econet-mqtt-publisher
