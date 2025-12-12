@@ -611,10 +611,6 @@ class EconetMQTTPublisher:
         if not self.publish_edit_params:
             return
 
-        if not self.edit_params_mappings:
-            logger.warning("editParams mapping is empty; nothing to publish")
-            return
-
         if data is None:
             logger.warning("editParams data unavailable; skipping publish")
             return
@@ -623,8 +619,17 @@ class EconetMQTTPublisher:
             logger.error("editParams payload is not a dictionary; skipping publish")
             return
 
+        # Build combined mapping: read-only mapped values + control mapped values
+        mappings = dict(self.edit_params_mappings)
+        for entry in self.edit_params_control_mappings:
+            mappings[entry["topic"]] = entry["value_path"]
+
+        if not mappings:
+            logger.warning("editParams mapping is empty; nothing to publish")
+            return
+
         published_values = {}
-        for topic_name, json_path in self.edit_params_mappings.items():
+        for topic_name, json_path in mappings.items():
             value = self._get_nested_value(data, json_path)
             if value is None:
                 logger.warning(f"Could not find editParams value for {topic_name} at path {json_path}")
