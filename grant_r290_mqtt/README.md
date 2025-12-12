@@ -13,9 +13,8 @@ Options:
 - `polling_interval`: Seconds between polls, default `10`.
 - `ha_discovery_messages`: Enable MQTT discovery, default `true`.
 - `ha_discovery_name`: Device name for discovery.
-- `use_mqtt_from_supervisor`: Auto-populate MQTT settings from the Supervisor service, default `true`.
-- `publish_edit_params`: Publish the `/econet/editParams` JSON payload to `mqtt_topic_prefix/edit_params` each poll, default `false`.
-- `enable_command_topic`: Subscribe to `mqtt_topic_prefix/command/set_param` to write values via `/econet/newParam`, default `false`.
+- `publish_edit_params`: Always enabled; publishes values from `/econet/editParams` each poll to mapped topics.
+- `enable_command_topic`: Always enabled; subscribes to edit param command topics and `/econet/newParam`.
 
 ### Command topic format (when enabled)
 - Topic: `mqtt_topic_prefix/command/set_param`

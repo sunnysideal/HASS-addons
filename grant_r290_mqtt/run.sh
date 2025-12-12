@@ -16,7 +16,6 @@ MQTT_TOPIC_PREFIX=$(bashio::config 'mqtt_topic_prefix')
 POLLING_INTERVAL=$(bashio::config 'polling_interval')
 HA_DISCOVERY_MESSAGES=$(bashio::config 'ha_discovery_messages')
 HA_DISCOVERY_NAME=$(bashio::config 'ha_discovery_name')
-USE_MQTT_FROM_SUPERVISOR=$(bashio::config 'use_mqtt_from_supervisor')
 PUBLISH_EDIT_PARAMS=$(bashio::config 'publish_edit_params')
 ENABLE_COMMAND_TOPIC=$(bashio::config 'enable_command_topic')
 
@@ -24,17 +23,14 @@ if [[ -z "${ECONET_ENDPOINT}" ]]; then
     bashio::log.fatal "Configuration option 'econet_endpoint' is required"
 fi
 
-# Fallback to supervisor MQTT service if configured and host not provided
-if bashio::var.has_value "${USE_MQTT_FROM_SUPERVISOR}" \
-    && bashio::var.true "${USE_MQTT_FROM_SUPERVISOR}" \
+# Fallback to supervisor MQTT service when host is not provided
+if ! bashio::var.has_value "${MQTT_HOST}" \
     && bashio::services.available "mqtt"; then
-    if ! bashio::var.has_value "${MQTT_HOST}"; then
-        MQTT_HOST=$(bashio::services mqtt "host")
-        MQTT_PORT=$(bashio::services mqtt "port")
-        MQTT_USERNAME=$(bashio::services mqtt "username")
-        MQTT_PASSWORD=$(bashio::services mqtt "password")
-        log "Using MQTT service from Supervisor: ${MQTT_HOST}:${MQTT_PORT}"
-    fi
+    MQTT_HOST=$(bashio::services mqtt "host")
+    MQTT_PORT=$(bashio::services mqtt "port")
+    MQTT_USERNAME=$(bashio::services mqtt "username")
+    MQTT_PASSWORD=$(bashio::services mqtt "password")
+    log "Using MQTT service from Supervisor: ${MQTT_HOST}:${MQTT_PORT}"
 fi
 
 if ! bashio::var.has_value "${MQTT_HOST}"; then

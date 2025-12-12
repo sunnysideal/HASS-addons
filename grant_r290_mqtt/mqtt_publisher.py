@@ -36,8 +36,9 @@ class EconetMQTTPublisher:
         self.ha_discovery_name = os.getenv('HA_DISCOVERY_NAME', 'Grant R290')
         self.ha_expire_after_seconds = int(os.getenv('HA_EXPIRE_AFTER_SECONDS', '0'))
         self.ha_expire_multiplier = int(os.getenv('HA_EXPIRE_MULTIPLIER', '4'))
-        self.publish_edit_params = os.getenv('PUBLISH_EDIT_PARAMS', 'false').lower() == 'true'
-        self.enable_command_topic = os.getenv('ENABLE_COMMAND_TOPIC', 'false').lower() == 'true'
+        # Always publish editParams and enable command topic; no opt-out flag
+        self.publish_edit_params = True
+        self.enable_command_topic = True
 
         # Validate required configuration
         if not self.econet_endpoint:

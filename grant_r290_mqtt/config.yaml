@@ -1,5 +1,5 @@
 name: Grant R290 MQTT Publisher
-version: "0.1.13"
+version: "0.1.14"
 slug: grant_r290_mqtt
 description: Publishes Grant R290 Econet metrics to MQTT with Home Assistant discovery
 url: https://github.com/mikewhitby/econet-mqtt-publisher
@@ -23,9 +23,6 @@ schema:
   polling_interval: int?
   ha_discovery_messages: bool?
   ha_discovery_name: str?
-  use_mqtt_from_supervisor: bool?
-  publish_edit_params: bool?
-  enable_command_topic: bool?
 options:
   econet_endpoint: ""
   mqtt_host: null
@@ -36,6 +33,3 @@ options:
   polling_interval: 10
   ha_discovery_messages: true
   ha_discovery_name: Grant R290
-  use_mqtt_from_supervisor: true
-  publish_edit_params: false
-  enable_command_topic: false
