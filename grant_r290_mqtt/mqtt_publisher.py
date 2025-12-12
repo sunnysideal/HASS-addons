@@ -113,7 +113,10 @@ class EconetMQTTPublisher:
             'circuit1_work_state': ['data', '236', 'value'],
             #'circuit1_comfort_temp': ['data', '238', 'value'],
             #'circuit1_eco_temp': ['data', '239', 'value']
-            'circuit1_signal_from_thermostat': ['informationParams','95', 1,0,0]
+            'circuit1_signal_from_thermostat': ['informationParams','95', 1,0,0],
+            'circuit1_signal_from_thermostat': ['informationParams','95', 1,0,0],
+            'ashp_power': ['informationParams', '211', 1, 0, 0],
+            'ashp_thermal_power': ['informationParams', '212', 1, 0, 0]
         }
         # Editable params that should be controllable via MQTT/HA.
         # Each entry defines the parameter ID used by /econet/newParam and metadata
@@ -188,21 +191,20 @@ class EconetMQTTPublisher:
 
         # Home Assistant discovery metadata
         self.ha_discovery_configs = {
-            # 'circuit1_comfort_temp': {
-            #     'name': 'Circuit 1 Comfort Temperature Setpoint',
-            #     'device_class': 'temperature',
-            #     'state_class': 'measurement',
-            #     'unit_of_measurement': '°C',
-            #     'icon': 'mdi:thermometer'
-            # },
-            # 'circuit1_eco_temp': {
-            #     'name': 'Circuit 1 Eco Temperature Setpoint',
-            #     'device_class': 'temperature',
-            #     'state_class': 'measurement',
-            #     'unit_of_measurement': '°C',
-            #     'icon': 'mdi:thermometer'
-            # },
-            # Existing sensors
+            'ashp_power': {
+                'name': 'ASHP Power',
+                'device_class': 'power',
+                'state_class': 'measurement',
+                'unit_of_measurement': 'kW',
+                'icon': 'mdi:flash'
+            },
+            'ashp_thermal_power': {
+                'name': 'ASHP Thermal Power',
+                'device_class': 'power',
+                'state_class': 'measurement',
+                'unit_of_measurement': 'kW',
+                'icon': 'mdi:fire'
+            },
             'ashp_ambient_air_temp': {
                 'name': 'ASHP Ambient Air Temperature',
                 'device_class': 'temperature',
