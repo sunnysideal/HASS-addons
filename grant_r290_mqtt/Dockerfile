@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.19
+ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 ENV \
@@ -16,7 +16,7 @@ COPY mqtt_publisher.py /opt/app/mqtt_publisher.py
 COPY run.sh /run.sh
 
 # Install Python dependencies and prepare runtime
-RUN python3 -m pip install --no-cache-dir -r /opt/app/requirements.txt \
+RUN python -m pip install --no-cache-dir -r /opt/app/requirements.txt \
     && chmod a+x /run.sh
 
 WORKDIR /opt/app
