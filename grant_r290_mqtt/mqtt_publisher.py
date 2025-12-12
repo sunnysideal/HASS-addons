@@ -86,6 +86,7 @@ class EconetMQTTPublisher:
             'ashp_target_temp': ['curr', 'HeatSourceCalcPresetTemp'],
             'ashp_work_state': ['curr', 'AxenWorkState'],
             'circuit1_thermostat': ['curr', 'Circuit1thermostat'],
+            
             'dhw_temp': ['curr', 'TempCWU'],
             'outdoor_temp': ['curr', 'TempWthr'],
             'three_way_valve_state': ['curr', 'flapValveStates']
@@ -111,6 +112,7 @@ class EconetMQTTPublisher:
             'circuit1_work_state': ['data', '236', 'value'],
             #'circuit1_comfort_temp': ['data', '238', 'value'],
             #'circuit1_eco_temp': ['data', '239', 'value']
+            'circuit1_signal_from_thermostat': ['informationParams','95', 1,0,0]
         }
         # Editable params that should be controllable via MQTT/HA.
         # Each entry defines the parameter ID used by /econet/newParam and metadata
@@ -199,14 +201,6 @@ class EconetMQTTPublisher:
             #     'unit_of_measurement': '°C',
             #     'icon': 'mdi:thermometer'
             # },
-            'ashp_flow_rate': {
-                'name': 'ASHP Flow Rate',
-                'device_class': 'flow',
-                'state_class': 'measurement',
-                'unit_of_measurement': 'L/min',
-                'icon': 'mdi:water-pump'
-            },
-
             # Existing sensors
             'ashp_ambient_air_temp': {
                 'name': 'ASHP Ambient Air Temperature',
@@ -244,7 +238,7 @@ class EconetMQTTPublisher:
             },
             'ashp_flow_rate': {
                 'name': 'ASHP Flow Rate',
-                'device_class': 'flow',
+                'device_class': 'volume_flow_rate',
                 'state_class': 'measurement',
                 'unit_of_measurement': 'L/min',
                 'icon': 'mdi:water-pump'
