@@ -108,11 +108,8 @@ class EconetMQTTPublisher:
             # Circuit 1
             # Work_mode / Schedule ?
             'circuit1_work_state': ['data', '236', 'value'],
-            'circuit1_comfort_temp': ['data', '238', 'value'],
-            'circuit1_eco_temp': ['data', '239', 'value'],
-            'circuit1_down_hysteresis': ['data', '240', 'value'],
-            'circuit1_curve': ['data', '273', 'value'],
-            'circuit1_curve_shift': ['data', '275', 'value']
+            #'circuit1_comfort_temp': ['data', '238', 'value'],
+            #'circuit1_eco_temp': ['data', '239', 'value']
         }
         # Editable params that should be controllable via MQTT/HA.
         # Each entry defines the parameter ID used by /econet/newParam and metadata
@@ -151,6 +148,35 @@ class EconetMQTTPublisher:
                 "unit": "C",
                 "device_class": "temperature",
                 "icon": "mdi:home-thermometer-outline"
+            },
+            {
+                "topic": "circuit1_down_hysteresis",
+                "param_id": "240",
+                "value_path": ['data', '240', 'value'],
+                "min": 0,
+                "max": 5,
+                "step": 0.1,
+                "unit": "C",
+                "device_class": "temperature",
+                "icon": "mdi:thermometer-alert"
+            },
+            {
+                "topic": "circuit1_curve",
+                "param_id": "273",
+                "value_path": ['data', '273', 'value'],
+                "min": 0,
+                "max": 4,
+                "step": 0.1,
+                "icon": "mdi:chart-line"
+            },
+            {
+                "topic": "circuit1_curve_shift",
+                "param_id": "275",
+                "value_path": ['data', '275', 'value'],
+                "min": -20,
+                "max": 20,
+                "step": 1,
+                "icon": "mdi:chart-line-variant"
             }
         ]
         # Command topics for edit param controls (populated in _init_edit_control_topics)
