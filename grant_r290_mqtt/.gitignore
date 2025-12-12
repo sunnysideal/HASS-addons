@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+.env/
+env/
+
+# Tooling / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / runtimes
+*.log
+*.tmp
+
+# Coverage / test
+.coverage
+htmlcov/
+pytest_cache/
+
+# Docker / compose
+*.local.yaml
+*.local.yml
+
+# Home Assistant add-on artifacts
+rootfs/usr/lib/
+rootfs/usr/bin/
+rootfs/usr/local/
+rootfs/etc/
+
+upstream.old/
