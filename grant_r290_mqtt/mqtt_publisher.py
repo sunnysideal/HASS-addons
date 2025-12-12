@@ -79,6 +79,7 @@ class EconetMQTTPublisher:
             'ashp_compressor_freq': ['curr', 'AxenCompressorFreq'],
             'ashp_fan_speed': ['tilesParams', 3, 0, 0],
             'ashp_flow_temp': ['curr', 'AxenOutgoingTemp'],
+            'ashp_flow_rate': ['curr', 'currentFlow'],
             'ashp_outlet_water_pressure': ['tilesParams', 76, 0, 0],
             'ashp_pump_active': ['curr', 'AxenUpperPump'],
             'ashp_return_temp': ['curr', 'AxenReturnTemp'],
@@ -233,6 +234,13 @@ class EconetMQTTPublisher:
                 'state_class': 'measurement',
                 'unit_of_measurement': '°C',
                 'icon': 'mdi:thermometer-chevron-up'
+            },
+            'ashp_flow_rate': {
+                'name': 'ASHP Flow Rate',
+                'device_class': 'flow',
+                'state_class': 'measurement',
+                'unit_of_measurement': 'L/min',
+                'icon': 'mdi:water-pump'
             },
             'ashp_outlet_water_pressure': {
                 'name': 'ASHP Outlet Water Pressure',
