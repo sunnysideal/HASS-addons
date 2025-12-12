@@ -279,6 +279,14 @@ class EconetMQTTPublisher:
                 'payload_on': '1',
                 'payload_off': '0'
             },
+            'circuit1_signal_from_thermostat': {
+                'name': 'Circuit 1 Signal from Thermostat',
+                'device_class': 'heat',
+                'state_class': 'measurement',
+                'icon': 'mdi:radiator',
+                'payload_on': '0',   # if 1 = Heat
+                'payload_off': '1'
+            },
             'circuit1_thermostat': {
                 'name': 'Circuit 1 Thermostat Temperature',
                 'device_class': 'temperature',
