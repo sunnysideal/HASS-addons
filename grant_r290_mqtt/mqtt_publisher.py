@@ -199,6 +199,13 @@ class EconetMQTTPublisher:
             #     'unit_of_measurement': '°C',
             #     'icon': 'mdi:thermometer'
             # },
+            'ashp_flow_rate': {
+                'name': 'ASHP Flow Rate',
+                'device_class': 'flow',
+                'state_class': 'measurement',
+                'unit_of_measurement': 'L/min',
+                'icon': 'mdi:water-pump'
+            },
 
             # Existing sensors
             'ashp_ambient_air_temp': {
