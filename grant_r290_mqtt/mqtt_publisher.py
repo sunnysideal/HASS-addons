@@ -423,10 +423,10 @@ class EconetMQTTPublisher:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to fetch data from Econet: {e}", file=sys.stderr)
+            logger.error(f"Failed to fetch data from Econet: {e}")
             return None
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response from Econet: {e}", file=sys.stderr)
+            logger.error(f"Failed to parse JSON response from Econet: {e}")
             return None
 
     def _fetch_edit_params(self) -> Optional[Dict[str, Any]]:
@@ -437,10 +437,10 @@ class EconetMQTTPublisher:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to fetch data from editParams: {e}", file=sys.stderr)
+            logger.error(f"Failed to fetch data from editParams: {e}")
             return None
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response from editParams: {e}", file=sys.stderr)
+            logger.error(f"Failed to parse JSON response from editParams: {e}")
             return None
 
     def _set_econet_param(self, name: str, value: Any) -> Optional[Any]:
@@ -455,7 +455,7 @@ class EconetMQTTPublisher:
             except json.JSONDecodeError:
                 return response.text
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to set parameter {name}: {e}", file=sys.stderr)
+            logger.error(f"Failed to set parameter {name}: {e}")
             return None
 
     def _publish_ha_discovery(self):
