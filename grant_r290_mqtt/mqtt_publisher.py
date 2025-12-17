@@ -789,11 +789,12 @@ class EconetMQTTPublisher:
                 else:
                     logger.error("Failed to fetch data from Econet endpoint")
 
-                # Optionally publish editParams payload
-                if self.publish_edit_params:
-                    edit_data = self._fetch_edit_params()
+                edit_data = self._fetch_edit_params()
+                if edit_data:
                     self._publish_edit_params(edit_data)
-
+                else:
+                    logger.error("Failed to fetch data from editParams endpoint")
+                
                 # Wait for next polling interval
                 for _ in range(self.polling_interval):
                     if not self.running:
